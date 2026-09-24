@@ -3,790 +3,362 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="robots" content="noindex,nofollow,noarchive" />
-  <meta name="theme-color" content="#0b0907" />
-  <title>FormOne — Premium Scroll Prototype</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <title>FORMONE — Scroll Prototype V1.1</title>
   <style>
-    /* =========================================================
-       FORMONE / PROTOTYP 02
-       Главное правило этого прототипа:
-       CSS рисует сцену, а JavaScript только считает progress скролла.
-       ========================================================= */
-
-    :root{
-      --p:0;
-      --intro:1;
-      --open:0;
-      --burst:0;
-      --facts:0;
-      --exit:0;
-      --ink:#0b0907;
-      --cream:#f3efe7;
-      --muted:#a99f92;
-      --copper:#a96645;
-      --line:rgba(255,255,255,.12);
-    }
-
-    *{box-sizing:border-box}
-    html{background:var(--ink)}
-    body{
-      margin:0;
-      overflow-x:hidden;
-      background:var(--ink);
-      color:var(--cream);
-      font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      -webkit-font-smoothing:antialiased;
-    }
-
-    a{color:inherit;text-decoration:none}
-
-    /* Лёгкая плёнка/зерно — добавляет дорогую "фотографическую" фактуру. */
-    .grain{
-      position:fixed; inset:0; z-index:100; pointer-events:none;
-      opacity:.035;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
-    }
-
-    /* HEADER */
-    .header{
-      position:fixed; inset:0 0 auto 0; z-index:80;
-      height:78px; padding:0 4.2vw;
-      display:flex; align-items:center; gap:34px;
-      border-bottom:1px solid transparent;
-      background:linear-gradient(to bottom,rgba(8,7,6,.62),transparent);
-      transition:.3s ease;
-    }
-    .header.is-scrolled{
-      background:rgba(8,7,6,.78);
-      border-color:var(--line);
-      backdrop-filter:blur(16px);
-    }
-    .brand{font-size:24px;font-weight:800;letter-spacing:-.055em}
-    .nav{display:flex;gap:28px;margin-left:48px;font-size:12px;color:#d7d0c5}
-    .nav a{opacity:.78;transition:.2s}.nav a:hover{opacity:1}
-    .header-actions{margin-left:auto;display:flex;gap:15px;align-items:center}
-    .icon{
-      width:30px;height:30px;display:grid;place-items:center;
-      color:#eee9df;font-size:18px;
-    }
-
-    /* ---------------------------------------------------------
-       STORY = длинная физическая дистанция для скролла.
-       Внутри .scene sticky, поэтому визуально экран "держится".
-       --------------------------------------------------------- */
-    .story{
-      position:relative;
-      height:340vh;
-      background:
-        radial-gradient(ellipse at 72% 34%,rgba(168,111,73,.23),transparent 33%),
-        radial-gradient(ellipse at 61% 74%,rgba(151,95,57,.11),transparent 28%),
-        linear-gradient(112deg,#060504 0%,#0b0907 44%,#17110d 100%);
-    }
-
-    .scene{
-      position:sticky;
-      top:0;
-      height:100vh;
-      min-height:650px;
-      overflow:hidden;
-      isolation:isolate;
-    }
-
-    /* Свет за банкой. */
-    .backlight{
-      position:absolute;
-      left:69%; top:50%;
-      width:min(56vw,840px); aspect-ratio:1;
-      border-radius:50%;
-      transform:
-        translate(-50%,-50%)
-        scale(calc(1 + var(--burst) * .09));
-      background:
-        radial-gradient(circle,
-          rgba(227,183,139,.18) 0,
-          rgba(177,113,73,.11) 26%,
-          rgba(107,68,46,.055) 48%,
-          transparent 70%);
-      filter:blur(6px);
-      opacity:calc(.72 + var(--burst) * .2);
-    }
-
-    .floor-light{
-      position:absolute;
-      left:69%; bottom:5.8vh;
-      width:min(46vw,690px); height:86px;
-      transform:translateX(-50%) scaleX(calc(1 + var(--burst) * .08));
-      background:radial-gradient(ellipse,rgba(209,154,106,.26),rgba(75,45,29,.1) 42%,transparent 72%);
-      filter:blur(14px);
-      opacity:calc(.72 - var(--exit) * .4);
-    }
-
-    /* HERO TEXT */
-    .copy{
-      position:absolute;
-      z-index:20;
-      left:5.4vw; top:50%;
-      width:min(39vw,620px);
-      transform:translateY(calc(-50% - var(--exit) * 44px));
-      opacity:calc(var(--intro) * (1 - var(--exit)));
-    }
-
-    .eyebrow{
-      margin-bottom:20px;
-      color:#c99472;
-      font-size:10px;
-      font-weight:650;
-      letter-spacing:.33em;
-      text-transform:uppercase;
-    }
-
-    h1{
-      margin:0 0 24px;
-      font-size:clamp(58px,6.3vw,104px);
-      font-weight:610;
-      line-height:.86;
-      letter-spacing:-.065em;
-    }
-
-    .copy p{
-      margin:0 0 30px;
-      max-width:475px;
-      color:#c9c1b7;
-      font-size:15px;
-      line-height:1.62;
-    }
-
-    .cta{
-      display:inline-flex;align-items:center;gap:13px;
-      padding:15px 19px;
-      color:#111;
-      background:#f3efe7;
-      border-radius:3px;
-      font-size:12px;font-weight:700;
-      box-shadow:0 8px 30px rgba(0,0,0,.16);
-    }
-
-    .scroll-note{
-      margin-top:28px;
-      display:flex; align-items:center; gap:11px;
-      color:#716a63;
-      font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-    }
-    .scroll-note:before{content:"";width:44px;height:1px;background:#615a54}
-
-    /* =========================================================
-       PRODUCT STAGE
-       Банка больше НЕ собрана из div-блоков.
-       Теперь это SVG: матовый корпус, блики, фактура и отдельная крышка.
-       Это всё ещё прототип, но визуально он гораздо ближе к product render.
-       ========================================================= */
+    :root{--bg:#0a0a0a;--fg:#f4f1ea;--muted:#aaa69d;--line:rgba(255,255,255,.12);--p:0;--open:0;--burst:0;--facts:0;--exit:0}
+    *{box-sizing:border-box}html{background:#0a0a0a;scroll-behavior:auto}body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0a0a;color:var(--fg);overflow-x:hidden}a{color:inherit;text-decoration:none}
+    .noise{position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+    .topbar{position:fixed;z-index:80;top:0;left:0;right:0;height:74px;display:flex;align-items:center;gap:34px;padding:0 4vw;border-bottom:1px solid transparent;transition:.35s;background:linear-gradient(to bottom,rgba(8,8,8,.65),transparent)}
+    .topbar.scrolled{background:rgba(8,8,8,.76);backdrop-filter:blur(14px);border-color:var(--line)}.brand{font-size:22px;font-weight:800;letter-spacing:-.03em}.nav{display:flex;gap:24px;font-size:12px;color:#d7d4cd;flex:1;justify-content:center}.nav a{opacity:.82}.nav a:hover{opacity:1}.icons{display:flex;gap:14px;font-size:17px}
+    .story{height:390vh;position:relative;background:radial-gradient(circle at 50% 35%,#25211d 0,#11100f 24%,#090909 62%)}.sticky{position:sticky;top:0;height:100vh;min-height:650px;overflow:hidden;isolation:isolate}
+    .halo{position:absolute;left:50%;top:45%;width:min(72vw,940px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) scale(calc(1 + var(--burst)*.22));background:radial-gradient(circle,rgba(241,216,178,.18),rgba(241,216,178,.055) 38%,transparent 67%);filter:blur(8px);opacity:calc(.48 + var(--burst)*.4)}
+    .hero-copy{position:absolute;left:5.5vw;top:50%;width:min(33vw,470px);transform:translateY(calc(-50% - var(--exit)*42px));opacity:calc(1 - var(--exit)*1.25);z-index:12}.eyebrow{text-transform:uppercase;letter-spacing:.22em;font-size:10px;color:#c9bda9;margin-bottom:18px}
+    .hero-copy h1{font-size:clamp(44px,5.3vw,84px);line-height:.92;letter-spacing:-.055em;margin:0 0 24px;font-weight:520}.hero-copy p{font-size:14px;line-height:1.65;color:#bdb8ae;max-width:390px;margin-bottom:28px}.cta{display:inline-flex;align-items:center;gap:12px;padding:14px 18px;border:1px solid rgba(255,255,255,.28);font-size:12px;background:#f1eee7;color:#111;border-radius:2px;font-weight:650}
+    .scroll-hint{margin-top:28px;color:#777;font-size:10px;letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;gap:10px}.scroll-hint:before{content:"";width:46px;height:1px;background:#666}
     .product-stage{
       position:absolute;
-      z-index:16;
-      left:69%; top:52%;
-      width:min(39vw,560px);
-      height:min(79vh,720px);
-      transform:
-        translate(-50%,-50%)
-        translateY(calc(var(--exit) * -36px))
-        scale(calc(.94 + var(--p) * .075 - var(--exit) * .12));
-      filter:drop-shadow(0 48px 46px rgba(0,0,0,.44));
+      left:50%;top:50%;
+      width:min(36vw,470px);
+      height:min(66vh,650px);
+      transform:translate(-50%,-48%) scale(calc(1 + var(--p)*.07 - var(--exit)*.22));
+      z-index:10;
+      filter:drop-shadow(0 42px 55px rgba(0,0,0,.68));
     }
 
-    .jar-wrap{
+    /* Банка остаётся той же по композиции, но материал теперь строится
+       из нескольких бликов и теней, а не из одного плоского градиента. */
+    .jar{
       position:absolute;
-      inset:14% 5% 0;
-      z-index:5;
+      inset:17% 13% 1%;
+      border-radius:22% 22% 13% 13% / 10% 10% 8% 8%;
+      background:
+        radial-gradient(ellipse at 31% 16%,rgba(255,255,255,.115),transparent 24%),
+        radial-gradient(ellipse at 73% 23%,rgba(255,255,255,.075),transparent 20%),
+        linear-gradient(90deg,#030303 0%,#121212 13%,#292724 38%,#141311 61%,#060606 88%,#020202 100%);
+      border:1px solid rgba(255,255,255,.105);
+      box-shadow:
+        inset 24px 0 46px rgba(255,255,255,.025),
+        inset -38px 0 52px rgba(0,0,0,.82),
+        inset 0 -48px 65px rgba(0,0,0,.5),
+        0 45px 75px rgba(0,0,0,.48);
+      overflow:visible;
     }
 
-    .jar-svg{width:100%;height:100%;display:block;overflow:visible}
-
-    /* Крышка — отдельный слой. Именно поэтому мы можем двигать её независимо. */
-    .lid-wrap{
+    /* Узкое горлышко/резьба. Это делает банку менее похожей на коробку. */
+    .jar-neck{
       position:absolute;
-      z-index:15;
-      left:18%; right:18%; top:5%;
+      left:9%;right:9%;top:1.6%;
+      height:10%;
+      border-radius:50% 50% 18% 18% / 34% 34% 16% 16%;
+      background:
+        repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 5px),
+        linear-gradient(90deg,#050505,#252321 38%,#0b0b0b 72%,#020202);
+      border:1px solid rgba(255,255,255,.09);
+      box-shadow:inset 0 7px 10px rgba(255,255,255,.035),0 5px 8px rgba(0,0,0,.42);
+    }
+    .jar-neck:before{
+      content:"";
+      position:absolute;
+      left:3%;right:3%;top:-18%;
+      height:35%;
+      border-radius:50%;
+      background:radial-gradient(ellipse at 50% 35%,#2a2927,#070707 70%);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    /* Вертикальный мягкий блик имитирует студийный свет на матовом пластике. */
+    .jar:before{
+      content:"";
+      position:absolute;
+      left:14%;top:14%;bottom:8%;
+      width:14%;
+      border-radius:50%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);
+      filter:blur(7px);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .jar:after{
+      content:"";
+      position:absolute;
+      left:9%;right:9%;bottom:-2%;
+      height:6%;
+      border-radius:50%;
+      background:#030303;
+      filter:blur(2px);
+      opacity:.9;
+    }
+
+    .label{
+      position:absolute;
+      left:13%;right:13%;top:25%;bottom:12%;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        linear-gradient(155deg,rgba(255,255,255,.025),transparent 28%),
+        linear-gradient(150deg,#0d0d0d 0,#1a1918 54%,#090909 100%);
+      padding:9% 8%;
+      text-align:center;
+      overflow:hidden;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);
+    }
+    .label:before{
+      content:"";
+      position:absolute;
+      width:170%;height:46%;
+      left:-35%;top:31%;
+      transform:rotate(-12deg);
+      background:linear-gradient(90deg,transparent,rgba(203,164,111,.12),rgba(223,189,145,.17),transparent);
+    }
+    .label:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(90deg,transparent 0 67%,rgba(255,255,255,.025) 76%,transparent 88%);
+      pointer-events:none;
+    }
+
+    .formone{font-size:clamp(13px,1.2vw,18px);letter-spacing:.10em;font-weight:760}
+    .rule{width:26%;height:1px;background:#a4845d;margin:10% auto}
+    .premium{font-size:clamp(9px,.7vw,11px);letter-spacing:.22em;color:#b8aa95}
+    .whey{margin-top:2%;font-size:clamp(19px,2vw,30px);font-weight:800;line-height:.93;letter-spacing:-.045em}
+    .flavour{
+      margin:10% auto 0;padding:6px 8px;max-width:75%;
+      border-top:1px solid #a4845d;border-bottom:1px solid #a4845d;
+      font-size:9px;letter-spacing:.16em;color:#ceb892
+    }
+    .macros{
+      position:absolute;left:8%;right:8%;bottom:6%;
+      display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+      color:#aaa;font-size:8px
+    }
+    .macros b{display:block;color:#eee;font-size:11px;margin-bottom:2px}
+
+    /* Крышка по-прежнему отдельный слой, но её форма и ребра более спокойные. */
+    .lid{
+      position:absolute;
+      left:10%;right:10%;top:9%;
       height:17%;
-      transform-origin:68% 58%;
+      transform-origin:75% 52%;
       transform:
-        translateX(calc(var(--open) * 54px))
-        translateY(calc(var(--open) * -112px))
-        rotate(calc(var(--open) * 13deg));
-      filter:drop-shadow(0 18px 16px rgba(0,0,0,.42));
+        translateY(calc(var(--open)*-100px))
+        translateX(calc(var(--open)*44px))
+        rotate(calc(var(--open)*14deg));
+      z-index:9;
+      filter:drop-shadow(0 18px 18px rgba(0,0,0,.36));
+    }
+    .lid-top{
+      position:absolute;
+      inset:14% 0 0;
+      border-radius:22% 22% 14% 14%/38% 38% 18% 18%;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.03),transparent 22%,rgba(255,255,255,.04) 65%,transparent 90%),
+        repeating-linear-gradient(90deg,#070707 0 5px,#1a1918 5px 8px,#090909 8px 11px);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:inset 0 8px 16px rgba(255,255,255,.035),inset 0 -8px 13px rgba(0,0,0,.55);
+    }
+    .lid-top:before{
+      content:"";
+      position:absolute;
+      left:3%;right:3%;top:-16%;
+      height:32%;
+      border-radius:50%;
+      background:radial-gradient(ellipse at 47% 28%,#302e2b,#080808 69%);
+      border:1px solid rgba(255,255,255,.12);
     }
 
-    .lid-svg{width:100%;height:100%;display:block;overflow:visible}
-
-    /* Порошок рисует canvas, но сам canvas просто слой над банкой. */
-    #powder{
+    /* Canvas заменяет старые круглые cloud/div. На нём рисуется мелкая пыль. */
+    #powder-canvas{
       position:absolute;
-      z-index:11;
-      left:6%; top:-2%;
-      width:88%; height:46%;
+      z-index:7;
+      left:15%;top:2%;
+      width:70%;height:38%;
       pointer-events:none;
       opacity:calc(var(--burst) * (1 - var(--exit)));
       mix-blend-mode:screen;
-      filter:saturate(.85);
     }
-
-    /* Тонкая дымка у горлышка — не "бульбашки", а мягкий powder mist. */
     .powder-mist{
       position:absolute;
-      z-index:10;
-      left:50%; top:18%;
-      width:54%; height:24%;
-      transform:
-        translate(-50%,-50%)
-        scale(calc(.55 + var(--burst) * .78));
-      opacity:calc(var(--burst) * .6);
-      background:
-        radial-gradient(ellipse at 50% 64%,rgba(236,213,183,.44),rgba(196,157,119,.14) 37%,transparent 67%);
-      filter:blur(14px);
+      z-index:6;
+      left:50%;top:25%;
+      width:45%;height:17%;
+      transform:translate(-50%,-50%) scale(calc(.5 + var(--burst)*.72));
+      opacity:calc(var(--burst)*.42);
+      background:radial-gradient(ellipse,rgba(224,199,165,.38),rgba(185,147,107,.11) 42%,transparent 72%);
+      filter:blur(12px);
     }
 
-    /* Факты появляются после открытия. */
-    .facts{
-      position:absolute;
-      z-index:21;
-      right:4.4vw; top:51%;
-      width:min(25vw,350px);
-      transform:translateY(-50%);
-      opacity:calc(var(--facts) * (1 - var(--exit)));
-    }
-
-    .fact{
-      display:grid;
-      grid-template-columns:36px 1fr;
-      gap:14px;
-      padding:18px 0;
-      border-top:1px solid var(--line);
-      transform:translateX(calc((1 - var(--facts)) * 24px));
-    }
-    .fact:last-child{border-bottom:1px solid var(--line)}
-    .fact-no{color:#ad7655;font-size:9px;letter-spacing:.18em}
-    .fact b{display:block;margin-bottom:5px;font-size:14px;font-weight:580}
-    .fact span{display:block;color:#8f877e;font-size:10px;line-height:1.5}
-
-    /* Таймлайн внизу показывает этапы истории. */
-    .steps{
-      position:absolute;
-      z-index:22;
-      left:5.4vw; bottom:5.4vh;
-      display:flex;align-items:center;gap:15px;
-      color:#716a63;
-      font-size:9px;
-    }
-    .step{display:flex;align-items:center;gap:9px}
-    .step:after{content:"";width:44px;height:1px;background:#514b46}
-    .step:last-child:after{display:none}
-    .step.active{color:#f1ece4}
-
-    /* Финальная надпись выводит человека из scroll-story в shopping. */
-    .exit-title{
-      position:absolute;
-      z-index:25;
-      left:50%; bottom:8vh;
-      width:90%;
-      transform:translate(-50%,calc((1 - var(--exit)) * 72px));
-      opacity:var(--exit);
-      text-align:center;
-      font-size:clamp(42px,6vw,88px);
-      line-height:.9;
-      letter-spacing:-.055em;
-    }
-    .exit-title small{
-      display:block;
-      margin-bottom:12px;
-      color:#a98e78;
-      font-size:9px;
-      letter-spacing:.28em;
-      text-transform:uppercase;
-    }
-
-    /* ===================== CATALOG ===================== */
-    .catalog{
-      min-height:100vh;
-      padding:105px 4.2vw 120px;
-      background:#f1eee8;
-      color:#11100f;
-    }
-    .catalog-head{
-      max-width:1440px;margin:0 auto 42px;
-      display:flex;align-items:end;justify-content:space-between;gap:40px;
-    }
-    .catalog h2{
-      margin:0;
-      font-size:clamp(44px,5vw,76px);
-      font-weight:560;
-      letter-spacing:-.055em;
-    }
-    .catalog-copy{max-width:420px;color:#69635d;font-size:12px;line-height:1.6}
-    .filters{display:flex;gap:18px;margin-top:14px;font-size:12px}
-    .filters b{color:#111}.filters span{color:#89827a}
-
-    .grid{
-      max-width:1440px;margin:0 auto;
-      display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
-    }
-
-    .card{
-      position:relative;
-      min-height:440px;
-      padding:20px;
-      overflow:hidden;
-      background:linear-gradient(145deg,#e9e2d8,#f7f3ed);
-      border:1px solid rgba(30,20,12,.05);
-    }
-    .card-tag{
-      position:absolute;right:16px;top:16px;
-      font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:#7f756c;
-    }
-    .mini-stage{height:300px;display:grid;place-items:center}
-    .mini-jar{
-      position:relative;
-      width:126px;height:205px;
-      border-radius:42px 42px 26px 26px / 28px 28px 20px 20px;
-      background:
-        radial-gradient(circle at 68% 28%,rgba(255,255,255,.18),transparent 16%),
-        linear-gradient(90deg,#0b0b0b,#292827 36%,#111 74%,#050505);
-      box-shadow:0 26px 30px rgba(45,30,20,.16);
-    }
-    .mini-jar:before{
-      content:"";position:absolute;left:-5px;right:-5px;top:-14px;height:39px;border-radius:12px;
-      background:repeating-linear-gradient(90deg,#080808 0 5px,#272727 5px 8px);
-      box-shadow:0 5px 8px rgba(0,0,0,.24);
-    }
-    .mini-label{
-      position:absolute;left:0;right:0;top:62px;height:103px;
-      background:#f2efea;color:#111;padding:11px 10px;text-align:center;
-      border-top:18px solid var(--tone);
-    }
-    .mini-label strong{font-size:17px;line-height:.86;display:block;letter-spacing:-.04em}
-    .mini-label small{display:block;margin-top:7px;font-size:7px;color:#555}
-    .card h3{margin:2px 0 5px;font-size:14px}.price{font-size:11px;color:#6f675f}
-
-    /* ===================== MOBILE ===================== */
-    @media(max-width:900px){
-      .header{height:66px;padding:0 20px}.brand{font-size:22px}.nav{display:none}
-      .story{height:330vh}.scene{min-height:590px}
-      .backlight{left:53%;top:59%;width:110vw}
-      .floor-light{left:53%;width:90vw;bottom:5vh}
-
-      .copy{
-        left:22px;right:22px;top:15vh;width:auto;
-        transform:translateY(calc(var(--exit) * -28px));
-        opacity:calc(var(--intro) * (1 - var(--exit)));
-      }
-      h1{font-size:clamp(45px,12.2vw,68px);max-width:600px}
-      .copy p{font-size:13px;max-width:330px}.cta{padding:13px 16px}
-
-      .product-stage{
-        left:50%;top:61%;
-        width:min(88vw,430px);
-        height:min(57vh,540px);
-        transform:
-          translate(-50%,-50%)
-          translateY(calc(var(--exit) * -26px))
-          scale(calc(.88 + var(--p) * .06 - var(--exit) * .09));
-      }
-
-      .lid-wrap{
-        left:18%;right:18%;top:4%;
-        transform:
-          translateX(calc(var(--open) * 32px))
-          translateY(calc(var(--open) * -78px))
-          rotate(calc(var(--open) * 11deg));
-      }
-
-      .facts{
-        left:22px;right:22px;top:auto;bottom:7vh;width:auto;
-        display:grid;grid-template-columns:1fr 1fr;gap:0 18px;
-      }
-      .fact{grid-template-columns:28px 1fr;padding:11px 0}
-      .fact span{display:none}.fact b{font-size:11px}
-      .fact:nth-child(3){display:none}
-
-      .steps{display:none}.exit-title{bottom:9vh}
-      .catalog{padding:74px 18px 90px}
-      .catalog-head{display:block}.catalog-copy{margin-top:15px}
-      .grid{grid-template-columns:1fr 1fr;gap:10px}
-      .card{min-height:330px;padding:13px}.mini-stage{height:225px}
-      .mini-jar{transform:scale(.82)}
-    }
-
-    @media(max-width:520px){
-      .header-actions .icon:first-child{display:none}
-      .story{height:320vh}
-      .copy{top:13vh}
-      .copy p{max-width:285px}
-      .product-stage{top:62%;width:min(94vw,390px)}
-      .facts{bottom:5.5vh}
-      .card{min-height:298px}
-      .mini-stage{height:190px}.mini-jar{transform:scale(.7)}
-      .catalog h2{font-size:40px}
-    }
-
-    @media(prefers-reduced-motion:reduce){
-      .story{height:160vh}
-      #powder{display:none}
-    }
+    .facts{position:absolute;right:5.5vw;top:50%;width:min(29vw,400px);transform:translateY(-50%);z-index:11}.fact{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:18px 0;border-top:1px solid var(--line);transform:translateX(calc((1 - var(--facts))*32px));opacity:var(--facts)}.num{font-size:10px;color:#9e886a;letter-spacing:.16em}.fact b{display:block;font-size:15px;margin-bottom:5px;font-weight:560}.fact span{display:block;font-size:11px;color:#8f8b83;line-height:1.45}
+    .microcopy{position:absolute;right:5.5vw;bottom:5.5vh;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#6e6a64;opacity:calc(1 - var(--exit))}.transition-title{position:absolute;left:50%;bottom:7vh;transform:translate(-50%,calc((1 - var(--exit))*90px));opacity:var(--exit);font-size:clamp(36px,5vw,74px);line-height:.92;letter-spacing:-.05em;text-align:center;width:90%;z-index:15}.transition-title small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#aaa;margin-bottom:12px}
+    .products{background:#f2f0eb;color:#111;padding:110px 4vw 130px;min-height:100vh}.products-head{display:flex;justify-content:space-between;align-items:end;max-width:1400px;margin:0 auto 42px}.products h2{font-size:clamp(38px,5vw,72px);letter-spacing:-.055em;font-weight:520;margin:0}.products-head p{max-width:380px;color:#666;font-size:13px;line-height:1.55}.grid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .card{background:#e8e5de;min-height:420px;padding:24px;position:relative;overflow:hidden}.mini-jar{height:255px;display:grid;place-items:center}.mini-body{width:112px;height:185px;border-radius:24px 24px 14px 14px;background:linear-gradient(90deg,#090909,#262626 45%,#070707);position:relative;box-shadow:0 24px 30px rgba(0,0,0,.18)}.mini-body:before{content:"";position:absolute;width:122px;height:38px;border-radius:13px;background:repeating-linear-gradient(90deg,#111 0 5px,#242424 5px 8px);left:-5px;top:-14px}.mini-body:after{content:"FORMONE\A PREMIUM\A WHEY PROTEIN";white-space:pre;text-align:center;position:absolute;inset:47px 10px auto;color:#eee;font-size:9px;line-height:1.6;letter-spacing:.08em}.card h3{margin:10px 0 5px;font-size:15px}.price{font-size:12px;color:#666}.tag{position:absolute;right:18px;top:18px;font-size:9px;text-transform:uppercase;letter-spacing:.15em;border:1px solid #bbb5a9;padding:7px 8px}
+    @media(max-width:900px){.topbar{height:64px;padding:0 20px}.nav{display:none}.icons{margin-left:auto}.story{height:330vh}.sticky{min-height:580px}.hero-copy{left:24px;right:24px;top:17vh;width:auto;transform:none;text-align:left;opacity:calc(1 - min(1,var(--p)*2.55))}.hero-copy h1{font-size:clamp(40px,11vw,62px);max-width:520px}.hero-copy p{max-width:330px}.product-stage{top:60%;width:min(76vw,410px);height:min(57vh,570px);transform:translate(-50%,-50%) scale(calc(.88 + var(--p)*.065 - var(--exit)*.17))}.facts{left:24px;right:24px;top:auto;bottom:9vh;width:auto;display:grid;grid-template-columns:1fr 1fr;gap:0 18px;pointer-events:none;opacity:calc(var(--facts)*(1 - var(--exit)))}.fact{padding:12px 0;grid-template-columns:30px 1fr}.fact span{display:none}.fact b{font-size:12px}.microcopy{display:none}.transition-title{bottom:10vh;font-size:clamp(34px,10vw,54px)}.products{padding:76px 18px 90px}.products-head{display:block}.products-head p{margin-top:16px}.grid{grid-template-columns:1fr 1fr;gap:10px}.card{padding:14px;min-height:315px}.mini-jar{height:195px}.mini-body{transform:scale(.78)}}
+    @media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.card{min-height:285px}.mini-jar{height:165px}.mini-body{transform:scale(.68)}.tag{font-size:7px;padding:5px;right:10px;top:10px}.facts{bottom:7vh}.fact:nth-child(3),.fact:nth-child(4){display:none}}
+    @media(prefers-reduced-motion:reduce){.story{height:150vh}.lid,.powder,.particle,.product-stage,.hero-copy,.fact,.transition-title{transition:none!important}}
   </style>
 </head>
-<body>
-  <div class="grain"></div>
-
-  <header class="header" id="header">
-    <a class="brand" href="#">FormOne.</a>
-    <nav class="nav">
-      <a href="#catalog">Produkte</a>
-      <a href="#">Unsere Philosophie</a>
-      <a href="#">Produkt finden</a>
-    </nav>
-    <div class="header-actions" aria-hidden="true">
-      <span class="icon">⌕</span>
-      <span class="icon">▢</span>
+<body>\n<!-- BASELINE: mobile composition from the approved first FORMONE prototype -->
+<div class="noise"></div>
+<header class="topbar" id="topbar">
+  <a class="brand" href="#">FORMONE</a>
+  <nav class="nav"><a>Protein</a><a>Performance</a><a>Strength</a><a>Wellness</a><a>Blog</a><a>Welches Produkt passt zu mir?</a></nav>
+  <div class="icons"><span>⌕</span><span>♧</span><span>↗</span></div>
+</header>
+<main>
+<section class="story" id="story">
+  <div class="sticky">
+    <div class="halo"></div>
+    <div class="hero-copy">
+      <div class="eyebrow">Science backed · Swiss made</div>
+      <h1>More than a supplement.</h1>
+      <p>Hochwertige Inhaltsstoffe. Wissenschaftlich fundiert. Entwickelt für Energie, Leistung und Balance.</p>
+      <a class="cta" href="#products">Produkte entdecken <span>→</span></a>
+      <div class="scroll-hint">Scroll to explore</div>
     </div>
-  </header>
-
-  <main>
-    <section class="story" id="story">
-      <div class="scene">
-        <div class="backlight"></div>
-        <div class="floor-light"></div>
-
-        <div class="copy">
-          <div class="eyebrow">FormOne Nutrition</div>
-          <h1>More than<br>a supplement.</h1>
-          <p>Dein Training. Deine Balance. Deine Formel. Ein Produkt im Mittelpunkt — ruhig, klar und ohne Discount-Look.</p>
-          <a class="cta" href="#catalog">Produkte entdecken <span>↗</span></a>
-          <div class="scroll-note">Scroll to reveal</div>
-        </div>
-
-        <div class="product-stage" aria-label="FormOne Premium Whey Protein Cookies">
-          <canvas id="powder"></canvas>
-          <div class="powder-mist"></div>
-
-          <div class="lid-wrap">
-            <svg class="lid-svg" viewBox="0 0 520 150" role="img" aria-label="Deckel">
-              <defs>
-                <linearGradient id="lidSide" x1="0" x2="1">
-                  <stop offset="0" stop-color="#050505"/>
-                  <stop offset=".23" stop-color="#242321"/>
-                  <stop offset=".5" stop-color="#111"/>
-                  <stop offset=".78" stop-color="#2b2927"/>
-                  <stop offset="1" stop-color="#050505"/>
-                </linearGradient>
-                <radialGradient id="lidTop" cx=".5" cy=".25" r=".75">
-                  <stop offset="0" stop-color="#33302d"/>
-                  <stop offset=".58" stop-color="#111"/>
-                  <stop offset="1" stop-color="#050505"/>
-                </radialGradient>
-              </defs>
-              <ellipse cx="260" cy="38" rx="220" ry="31" fill="url(#lidTop)" stroke="#3c3936" stroke-width="2"/>
-              <path d="M40 38 L40 104 C40 132 480 132 480 104 L480 38 C455 70 65 70 40 38Z" fill="url(#lidSide)" stroke="#2f2c29" stroke-width="2"/>
-              <g opacity=".52" stroke="#5f5954" stroke-width="3">
-                <path d="M58 48v63M74 51v64M90 53v64M106 55v63M122 57v63M138 59v62M154 60v62M170 61v62M186 62v62M202 63v62M218 64v62M234 64v62M250 64v62M266 64v62M282 64v62M298 63v62M314 62v62M330 61v62M346 60v62M362 59v62M378 57v63M394 55v63M410 53v64M426 51v64M442 48v63"/>
-              </g>
-              <ellipse cx="260" cy="105" rx="219" ry="27" fill="#080808" opacity=".8"/>
-            </svg>
-          </div>
-
-          <div class="jar-wrap">
-            <svg class="jar-svg" viewBox="0 0 560 720" role="img" aria-label="FormOne Whey Protein Cookies">
-              <defs>
-                <linearGradient id="bodyG" x1="0" x2="1">
-                  <stop offset="0" stop-color="#030303"/>
-                  <stop offset=".14" stop-color="#151515"/>
-                  <stop offset=".38" stop-color="#252321"/>
-                  <stop offset=".56" stop-color="#121110"/>
-                  <stop offset=".78" stop-color="#252321"/>
-                  <stop offset="1" stop-color="#030303"/>
-                </linearGradient>
-                <radialGradient id="shine" cx=".68" cy=".23" r=".42">
-                  <stop offset="0" stop-color="#fff" stop-opacity=".2"/>
-                  <stop offset=".3" stop-color="#fff" stop-opacity=".045"/>
-                  <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-                </radialGradient>
-                <filter id="texture">
-                  <feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
-                  <feComponentTransfer in="mono" result="lowNoise">
-                    <feFuncA type="table" tableValues="0 .085"/>
-                  </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="lowNoise" mode="soft-light"/>
-                </filter>
-                <filter id="jarShadow" x="-30%" y="-20%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#000" flood-opacity=".54"/>
-                </filter>
-              </defs>
-
-              <!-- Горлышко остаётся на банке; крышка живёт отдельным SVG слоем. -->
-              <ellipse cx="280" cy="96" rx="157" ry="28" fill="#050505" stroke="#49443f" stroke-width="4"/>
-              <ellipse cx="280" cy="96" rx="132" ry="19" fill="#020202" stroke="#252321" stroke-width="4"/>
-              <g fill="none" stroke="#302d2a" stroke-width="8">
-                <ellipse cx="280" cy="111" rx="160" ry="29"/>
-                <ellipse cx="280" cy="126" rx="158" ry="28"/>
-                <ellipse cx="280" cy="141" rx="155" ry="27"/>
-              </g>
-
-              <!-- Матовый корпус. -->
-              <path filter="url(#jarShadow)" d="M119 142
-                C92 170 76 212 72 266
-                L58 578
-                C54 666 112 706 280 706
-                C448 706 506 666 502 578
-                L488 266
-                C484 212 468 170 441 142
-                C390 167 170 167 119 142Z"
-                fill="url(#bodyG)" stroke="#292623" stroke-width="2"/>
-
-              <path d="M119 142
-                C92 170 76 212 72 266
-                L58 578
-                C54 666 112 706 280 706
-                C448 706 506 666 502 578
-                L488 266
-                C484 212 468 170 441 142
-                C390 167 170 167 119 142Z"
-                fill="url(#shine)" filter="url(#texture)" opacity=".78"/>
-
-              <!-- Этикетка -->
-              <path d="M72 311 C160 326 400 326 488 311 L496 558 C394 578 166 578 64 558Z" fill="#f1eee8"/>
-              <path d="M70 357 C167 369 393 369 490 357 L493 451 C390 465 170 465 67 451Z" fill="#aa6746"/>
-
-              <text x="280" y="349" text-anchor="middle" fill="#191715" font-size="25" font-weight="750" letter-spacing="-1">FormOne.</text>
-              <text x="166" y="416" fill="#fff" font-size="58" font-weight="850" letter-spacing="-4">WHEY</text>
-              <text x="166" y="465" fill="#fff" font-size="58" font-weight="850" letter-spacing="-4">PROTEIN</text>
-              <text x="168" y="497" fill="#181512" font-size="22" font-weight="760">COOKIES</text>
-              <text x="168" y="523" fill="#9b593b" font-size="12" font-weight="760" letter-spacing=".8">ADVANCED PROTEIN</text>
-
-              <g fill="#171411" text-anchor="middle">
-                <text x="178" y="552" font-size="24" font-weight="850">33</text>
-                <text x="178" y="568" font-size="8" font-weight="650">SERVINGS</text>
-                <text x="274" y="552" font-size="24" font-weight="850">23g</text>
-                <text x="274" y="568" font-size="8" font-weight="650">PROTEIN</text>
-                <text x="370" y="552" font-size="24" font-weight="850">119</text>
-                <text x="370" y="568" font-size="8" font-weight="650">KCAL</text>
-              </g>
-
-              <!-- Небольшой cookie-мотив, вместо мультяшной банки. -->
-              <g transform="translate(407 522) rotate(-13)">
-                <circle r="56" fill="#c98649"/>
-                <circle cx="-17" cy="-13" r="8" fill="#5c3827"/>
-                <circle cx="16" cy="-20" r="7" fill="#4b3023"/>
-                <circle cx="24" cy="17" r="9" fill="#553425"/>
-                <circle cx="-20" cy="22" r="6" fill="#533224"/>
-                <circle cx="2" cy="4" r="5" fill="#5a3625"/>
-                <path d="M-39-28Q0-46 40-23M-48 3Q0-14 49 4M-35 32Q0 18 36 33" fill="none" stroke="#e2ae72" stroke-width="4" opacity=".6"/>
-              </g>
-
-              <text x="448" y="584" text-anchor="middle" fill="#f6f2ea" font-size="14">1000g</text>
-            </svg>
+    <div class="product-stage" aria-label="FORMONE Premium Whey Protein">
+      <canvas id="powder-canvas" aria-hidden="true"></canvas>
+      <div class="powder-mist" aria-hidden="true"></div>
+      <div class="lid"><div class="lid-top"></div></div>
+      <div class="jar">
+        <div class="jar-neck" aria-hidden="true"></div>
+        <div class="label">
+          <div class="formone">FORMONE</div>
+          <div class="rule"></div>
+          <div class="premium">PREMIUM</div>
+          <div class="whey">WHEY<br>PROTEIN</div>
+          <div class="flavour">CHOCOLATE</div>
+          <div class="macros">
+            <div><b>24g</b>Protein</div>
+            <div><b>5.4g</b>BCAA</div>
+            <div><b>0g</b>Sugar*</div>
           </div>
         </div>
-
+      </div>
+    </div>
         <aside class="facts">
-          <div class="fact"><div class="fact-no">01</div><div><b>23g Protein</b><span>Klare Produktinformation statt Werbelärm.</span></div></div>
-          <div class="fact"><div class="fact-no">02</div><div><b>33 Portionen</b><span>Die wichtigsten Fakten in wenigen Sekunden.</span></div></div>
-          <div class="fact"><div class="fact-no">03</div><div><b>Premium Routine</b><span>Produkt zuerst erklären, danach verkaufen.</span></div></div>
-        </aside>
+      <div class="fact"><div class="num">01</div><div><b>Whey Protein</b><span>Für den Muskelerhalt und eine hochwertige Proteinversorgung.</span></div></div>
+      <div class="fact"><div class="num">02</div><div><b>BCAAs</b><span>Essenzielle Aminosäuren als natürlicher Bestandteil des Proteins.</span></div></div>
+      <div class="fact"><div class="num">03</div><div><b>Digestive Enzymes</b><span>Für eine moderne, funktionale Produktstory.</span></div></div>
+      <div class="fact"><div class="num">04</div><div><b>Premium Quality</b><span>Reduzierte Gestaltung statt lauter Discount-Kommunikation.</span></div></div>
+    </aside>
+    <div class="microcopy">Scroll controlled · prototype 01</div>
+    <div class="transition-title"><small>Discover the range</small>Find your formula.</div>
+  </div>
+</section>
+<section class="products" id="products">
+  <div class="products-head"><h2>Unsere Bestseller</h2><p>Der Scroll-Film endet bewusst direkt im Shopping-Bereich. Im echten Shop würden hier Shopify-Produkte, Varianten, Bewertungen und Add-to-Cart angebunden.</p></div>
+  <div class="grid">
+    <article class="card"><span class="tag">Protein</span><div class="mini-jar"><div class="mini-body"></div></div><h3>Premium Whey Protein</h3><div class="price">CHF 49.00</div></article>
+    <article class="card"><span class="tag">Performance</span><div class="mini-jar"><div class="mini-body"></div></div><h3>Clear Protein</h3><div class="price">CHF 44.00</div></article>
+    <article class="card"><span class="tag">Strength</span><div class="mini-jar"><div class="mini-body"></div></div><h3>Creatine Monohydrate</h3><div class="price">CHF 34.00</div></article>
+    <article class="card"><span class="tag">Wellness</span><div class="mini-jar"><div class="mini-body"></div></div><h3>Daily Greens</h3><div class="price">CHF 58.00</div></article>
+  </div>
+</section>
+</main>
+<script>
+  const root=document.documentElement,story=document.getElementById('story'),topbar=document.getElementById('topbar');
+  const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+  const map=(p,a,b)=>clamp((p-a)/(b-a));
 
-        <div class="steps" aria-hidden="true">
-          <div class="step active" id="s1">01&nbsp;&nbsp;Entdecken</div>
-          <div class="step" id="s2">02&nbsp;&nbsp;Die Formel</div>
-          <div class="step" id="s3">03&nbsp;&nbsp;Deine Routine</div>
-        </div>
+  /* POWDER CANVAS
+     Вместо крупных пузырей рисуем много маленьких точек.
+     Позиция каждой точки зависит от --burst, то есть от скролла. */
+  const canvas=document.getElementById('powder-canvas');
+  const ctx=canvas.getContext('2d');
+  const DPR=Math.min(devicePixelRatio||1,2);
+  let seed=1847;
+  const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};
+  const dust=Array.from({length:145},(_,i)=>{
+    const side=rnd()-.5;
+    return{
+      x:side*(18+rnd()*92),
+      y:rnd()*16,
+      vx:side*(22+rnd()*120),
+      vy:-(44+rnd()*190),
+      r:.35+rnd()*1.45,
+      a:.13+rnd()*.5,
+      delay:(i%19)/76,
+      blur:rnd()>.86?1.6:0
+    };
+  });
 
-        <div class="exit-title"><small>Discover the range</small>Finde deine Formel.</div>
-      </div>
-    </section>
+  function resizePowder(){
+    const r=canvas.getBoundingClientRect();
+    canvas.width=Math.max(1,Math.round(r.width*DPR));
+    canvas.height=Math.max(1,Math.round(r.height*DPR));
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
 
-    <section class="catalog" id="catalog">
-      <div class="catalog-head">
-        <div>
-          <h2>Finde deine Formel.</h2>
-          <div class="filters"><b>Protein</b><span>/</span><span>Performance</span><span>/</span><span>Strength</span><span>/</span><span>Wellness</span></div>
-        </div>
-        <p class="catalog-copy">Erst nach der abgeschlossenen Produkt-Story beginnt der Shop. Im Shopify-Build werden diese Karten direkt mit echten Produkten, Varianten und Add-to-Cart verbunden.</p>
-      </div>
+  function drawPowder(burst){
+    const w=canvas.clientWidth,h=canvas.clientHeight;
+    if(!w||!h)return;
+    ctx.clearRect(0,0,w,h);
+    if(burst<.002)return;
 
-      <div class="grid">
-        <article class="card" style="--tone:#a96746">
-          <span class="card-tag">Cookies</span>
-          <div class="mini-stage"><div class="mini-jar"><div class="mini-label"><strong>WHEY<br>PROTEIN</strong><small>COOKIES</small></div></div></div>
-          <h3>Premium Whey Protein</h3><div class="price">CHF 42.90</div>
-        </article>
-        <article class="card" style="--tone:#704334">
-          <span class="card-tag">Chocolate</span>
-          <div class="mini-stage"><div class="mini-jar"><div class="mini-label"><strong>WHEY<br>PROTEIN</strong><small>CHOCOLATE</small></div></div></div>
-          <h3>Premium Whey Protein</h3><div class="price">CHF 42.90</div>
-        </article>
-        <article class="card" style="--tone:#d6b46e">
-          <span class="card-tag">Vanilla</span>
-          <div class="mini-stage"><div class="mini-jar"><div class="mini-label"><strong>WHEY<br>PROTEIN</strong><small>VANILLA</small></div></div></div>
-          <h3>Premium Whey Protein</h3><div class="price">CHF 42.90</div>
-        </article>
-        <article class="card" style="--tone:#d38186">
-          <span class="card-tag">Strawberry</span>
-          <div class="mini-stage"><div class="mini-jar"><div class="mini-label"><strong>WHEY<br>PROTEIN</strong><small>STRAWBERRY</small></div></div></div>
-          <h3>Premium Whey Protein</h3><div class="price">CHF 42.90</div>
-        </article>
-      </div>
-    </section>
-  </main>
+    const ox=w*.5,oy=h*.79;
 
-  <script>
-    /* =========================================================
-       SCROLL LOGIC — JavaScript
-       Здесь JS НЕ рисует всю страницу.
-       Он только переводит положение скролла в числа 0..1.
-       CSS читает эти числа через CSS variables.
-       ========================================================= */
+    // Очень мягкое ядро пыли у горлышка.
+    const glow=ctx.createRadialGradient(ox,oy,0,ox,oy,72*burst);
+    glow.addColorStop(0,'rgba(235,211,180,'+(.10*burst)+')');
+    glow.addColorStop(.45,'rgba(196,157,117,'+(.035*burst)+')');
+    glow.addColorStop(1,'rgba(160,120,85,0)');
+    ctx.fillStyle=glow;
+    ctx.beginPath();ctx.arc(ox,oy,74*burst,0,Math.PI*2);ctx.fill();
 
-    const root = document.documentElement;
-    const story = document.getElementById('story');
-    const header = document.getElementById('header');
-
-    const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
-
-    // range() переводит общий progress в локальный progress конкретной сцены.
-    // Например range(.3, .5, .4) = .5: мы прошли половину этапа 30–50%.
-    const range = (from, to, value) => clamp((value - from) / (to - from));
-
-    let frameRequested = false;
-
-    /* ---------------- POWDER CANVAS ----------------
-       Вместо круглых "бульбашек" здесь 170 очень маленьких частиц.
-       Их координаты создаются один раз. Потом scroll progress только
-       двигает частицы вверх/наружу и меняет прозрачность.
-       Поэтому порошок подчиняется пальцу/колесику пользователя.
-       ------------------------------------------------ */
-    const canvas = document.getElementById('powder');
-    const ctx = canvas.getContext('2d');
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
-
-    // Детерминированный pseudo-random, чтобы облако не менялось при каждом кадре.
-    let seed = 9137;
-    function random(){
-      seed = (seed * 16807) % 2147483647;
-      return (seed - 1) / 2147483646;
-    }
-
-    const dust = Array.from({length:170}, () => {
-      const side = random() - .5;
-      return {
-        x: side * (42 + random() * 135),
-        y: random() * 36,
-        vx: side * (34 + random() * 145),
-        vy: -(54 + random() * 225),
-        size: .45 + random() * 1.9,
-        alpha: .16 + random() * .58,
-        blur: random() > .78 ? 2.4 : 0
-      };
-    });
-
-    function resizeCanvas(){
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.max(1, Math.round(rect.width * DPR));
-      canvas.height = Math.max(1, Math.round(rect.height * DPR));
-      ctx.setTransform(DPR,0,0,DPR,0,0);
-    }
-
-    function drawPowder(burst){
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      if(!w || !h) return;
-
-      ctx.clearRect(0,0,w,h);
-      if(burst <= .001) return;
-
-      const originX = w * .5;
-      const originY = h * .78;
-
-      // Мягкая пылевая сердцевина у горлышка.
-      const glow = ctx.createRadialGradient(originX, originY, 0, originX, originY, 88 * burst);
-      glow.addColorStop(0, 'rgba(239,215,185,' + (.12 * burst) + ')');
-      glow.addColorStop(.35, 'rgba(202,163,126,' + (.055 * burst) + ')');
-      glow.addColorStop(1, 'rgba(185,139,101,0)');
-      ctx.fillStyle = glow;
+    dust.forEach(p=>{
+      const t=clamp((burst-p.delay)/(1-p.delay));
+      if(t<=0)return;
+      const ease=1-Math.pow(1-t,2);
+      const x=ox+p.x+p.vx*ease;
+      const y=oy+p.y+p.vy*ease;
+      const fade=Math.sin(Math.min(1,t)*Math.PI)*p.a;
+      ctx.save();
+      if(p.blur)ctx.filter='blur('+p.blur+'px)';
+      ctx.fillStyle='rgba(224,194,158,'+fade+')';
       ctx.beginPath();
-      ctx.arc(originX, originY, 92 * burst, 0, Math.PI * 2);
+      ctx.arc(x,y,p.r*(.65+t*.55),0,Math.PI*2);
       ctx.fill();
+      ctx.restore();
+    });
+  }
 
-      dust.forEach((p, i) => {
-        // Небольшая разница во времени появления частиц делает burst натуральнее.
-        const delay = (i % 17) / 62;
-        const t = clamp((burst - delay) / (1 - delay));
-        if(t <= 0) return;
+  let ticking=false;
+  function update(){
+    const r=story.getBoundingClientRect();
+    const max=story.offsetHeight-innerHeight;
+    const p=clamp((-r.top)/Math.max(1,max));
 
-        const ease = 1 - Math.pow(1 - t, 2);
-        const x = originX + p.x + p.vx * ease;
-        const y = originY + p.y + p.vy * ease;
-        const fade = Math.sin(Math.min(1,t) * Math.PI) * p.alpha;
+    // Этап 1: крышка открывается.
+    const open=map(p,.16,.38);
 
-        ctx.save();
-        if(p.blur) ctx.filter = 'blur(' + p.blur + 'px)';
-        ctx.fillStyle = 'rgba(226,196,160,' + fade + ')';
-        ctx.beginPath();
-        ctx.arc(x, y, p.size * (.65 + t * .7), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-    }
+    // Этап 2: порошок быстро появляется и затем исчезает.
+    const burstIn=map(p,.29,.48);
+    const burstOut=1-map(p,.61,.73);
+    const burst=clamp(burstIn*burstOut);
 
-    function update(){
-      const rect = story.getBoundingClientRect();
-      const scrollDistance = story.offsetHeight - innerHeight;
-      const p = clamp((-rect.top) / Math.max(1, scrollDistance));
+    // Этап 3: факты и затем переход к каталогу.
+    const facts=map(p,.42,.60)*(1-map(p,.76,.9));
+    const exit=map(p,.76,.96);
 
-      // Первый текст постепенно уступает место продукту.
-      const intro = 1 - range(.19, .37, p);
+    root.style.setProperty('--p',p.toFixed(4));
+    root.style.setProperty('--open',open.toFixed(4));
+    root.style.setProperty('--burst',burst.toFixed(4));
+    root.style.setProperty('--facts',clamp(facts).toFixed(4));
+    root.style.setProperty('--exit',exit.toFixed(4));
 
-      // Крышка открывается не сразу, а на участке 24–48%.
-      const open = range(.24, .48, p);
+    topbar.classList.toggle('scrolled',scrollY>24);
+    drawPowder(burst);
+    ticking=false;
+  }
 
-      // Powder: нарастает, затем мягко затухает.
-      const burstIn = range(.38, .58, p);
-      const burstOut = 1 - range(.66, .79, p);
-      const burst = clamp(burstIn * burstOut);
+  function onScroll(){
+    if(!ticking){requestAnimationFrame(update);ticking=true}
+  }
 
-      // Факты появляются после открытия банки.
-      const facts = range(.48, .64, p) * (1 - range(.76, .87, p));
-
-      // Последние 18% — переход из story в каталог.
-      const exit = range(.82, .98, p);
-
-      root.style.setProperty('--p', p.toFixed(4));
-      root.style.setProperty('--intro', intro.toFixed(4));
-      root.style.setProperty('--open', open.toFixed(4));
-      root.style.setProperty('--burst', burst.toFixed(4));
-      root.style.setProperty('--facts', clamp(facts).toFixed(4));
-      root.style.setProperty('--exit', exit.toFixed(4));
-
-      document.getElementById('s1').classList.toggle('active', p < .36);
-      document.getElementById('s2').classList.toggle('active', p >= .36 && p < .72);
-      document.getElementById('s3').classList.toggle('active', p >= .72);
-
-      header.classList.toggle('is-scrolled', scrollY > 24);
-
-      drawPowder(burst);
-      frameRequested = false;
-    }
-
-    function requestUpdate(){
-      if(frameRequested) return;
-      frameRequested = true;
-      requestAnimationFrame(update);
-    }
-
-    addEventListener('scroll', requestUpdate, {passive:true});
-    addEventListener('resize', () => {
-      resizeCanvas();
-      requestUpdate();
-    }, {passive:true});
-
-    resizeCanvas();
-    update();
-  </script>
+  addEventListener('scroll',onScroll,{passive:true});
+  addEventListener('resize',()=>{resizePowder();onScroll()},{passive:true});
+  resizePowder();
+  update();
+</script>
 </body>
 </html>
