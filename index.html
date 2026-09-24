@@ -67,8 +67,17 @@
     .header-actions{margin-left:auto;display:flex;gap:15px;align-items:center}
     .icon{
       width:30px;height:30px;display:grid;place-items:center;
-      color:#eee9df;font-size:18px;
+      color:#eee9df;
     }
+    .icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.45}
+    .header.is-light{
+      color:#151310;
+      background:rgba(241,238,232,.88);
+      border-color:rgba(17,16,15,.08);
+      backdrop-filter:blur(16px);
+    }
+    .header.is-light .nav{color:#4f4942}
+    .header.is-light .icon{color:#151310}
 
     /* ---------------------------------------------------------
        STORY = длинная физическая дистанция для скролла.
@@ -183,46 +192,64 @@
     .product-stage{
       position:absolute;
       z-index:16;
-      left:69%; top:52%;
-      width:min(39vw,560px);
-      height:min(79vh,720px);
+      left:70%; top:53%;
+      width:min(38vw,560px);
+      height:min(78vh,720px);
       transform:
         translate(-50%,-50%)
-        translateY(calc(var(--exit) * -36px))
-        scale(calc(.94 + var(--p) * .075 - var(--exit) * .12));
-      filter:drop-shadow(0 48px 46px rgba(0,0,0,.44));
+        translateY(calc(var(--exit) * -32px))
+        scale(calc(.965 + var(--p) * .055 - var(--exit) * .08));
+      filter:drop-shadow(0 46px 52px rgba(0,0,0,.42));
+      perspective:1000px;
     }
 
+    /* Реальный product asset: корпус и крышка — два отдельных изображения.
+       Поэтому мы можем открывать крышку по скроллу, не деформируя саму банку. */
     .jar-wrap{
       position:absolute;
-      inset:14% 5% 0;
       z-index:5;
+      left:50%; bottom:0;
+      width:100%;
+      transform:translateX(-50%) translateY(calc(var(--open) * 3px));
+    }
+    .jar-img{
+      display:block;
+      width:100%;
+      height:auto;
+      user-select:none;
+      -webkit-user-drag:none;
+      filter:
+        drop-shadow(0 34px 28px rgba(0,0,0,.34))
+        contrast(1.015) saturate(.94);
     }
 
-    .jar-svg{width:100%;height:100%;display:block;overflow:visible}
-
-    /* Крышка — отдельный слой. Именно поэтому мы можем двигать её независимо. */
     .lid-wrap{
       position:absolute;
       z-index:15;
-      left:18%; right:18%; top:5%;
-      height:17%;
-      transform-origin:68% 58%;
+      left:10%; top:1.2%;
+      width:80%;
+      transform-origin:68% 70%;
       transform:
-        translateX(calc(var(--open) * 54px))
+        translateX(calc(var(--open) * 48px))
         translateY(calc(var(--open) * -112px))
-        rotate(calc(var(--open) * 13deg));
-      filter:drop-shadow(0 18px 16px rgba(0,0,0,.42));
+        rotate(calc(var(--open) * 10deg))
+        scale(calc(1 - var(--open) * .025));
+      filter:drop-shadow(0 18px 16px rgba(0,0,0,.46));
     }
-
-    .lid-svg{width:100%;height:100%;display:block;overflow:visible}
+    .lid-img{
+      display:block;
+      width:100%;
+      height:auto;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
 
     /* Порошок рисует canvas, но сам canvas просто слой над банкой. */
     #powder{
       position:absolute;
       z-index:11;
-      left:6%; top:-2%;
-      width:88%; height:46%;
+      left:7%; top:-4%;
+      width:86%; height:43%;
       pointer-events:none;
       opacity:calc(var(--burst) * (1 - var(--exit)));
       mix-blend-mode:screen;
@@ -248,10 +275,20 @@
     .facts{
       position:absolute;
       z-index:21;
-      right:4.4vw; top:51%;
-      width:min(25vw,350px);
+      left:5.4vw; top:50%;
+      width:min(32vw,470px);
       transform:translateY(-50%);
       opacity:calc(var(--facts) * (1 - var(--exit)));
+    }
+    .facts:before{
+      content:"Inside the formula";
+      display:block;
+      margin-bottom:20px;
+      color:#b98160;
+      font-size:9px;
+      font-weight:650;
+      letter-spacing:.28em;
+      text-transform:uppercase;
     }
 
     .fact{
@@ -264,8 +301,8 @@
     }
     .fact:last-child{border-bottom:1px solid var(--line)}
     .fact-no{color:#ad7655;font-size:9px;letter-spacing:.18em}
-    .fact b{display:block;margin-bottom:5px;font-size:14px;font-weight:580}
-    .fact span{display:block;color:#8f877e;font-size:10px;line-height:1.5}
+    .fact b{display:block;margin-bottom:6px;font-size:17px;font-weight:560;letter-spacing:-.02em}
+    .fact span{display:block;color:#9f978e;font-size:11px;line-height:1.55}
 
     /* Таймлайн внизу показывает этапы истории. */
     .steps{
@@ -281,26 +318,37 @@
     .step:last-child:after{display:none}
     .step.active{color:#f1ece4}
 
-    /* Финальная надпись выводит человека из scroll-story в shopping. */
-    .exit-title{
+    /* Финал не обрывается белым экраном: светлая плоскость каталога
+       физически поднимается снизу в последние ~18% scroll-story. */
+    .catalog-bridge{
       position:absolute;
-      z-index:25;
-      left:50%; bottom:8vh;
-      width:90%;
-      transform:translate(-50%,calc((1 - var(--exit)) * 72px));
-      opacity:var(--exit);
-      text-align:center;
-      font-size:clamp(42px,6vw,88px);
-      line-height:.9;
-      letter-spacing:-.055em;
+      z-index:24;
+      left:0; right:0; bottom:-1px;
+      height:42vh;
+      min-height:250px;
+      padding:6.5vh 5.4vw 0;
+      color:#11100f;
+      background:#f1eee8;
+      border-radius:38px 38px 0 0;
+      transform:translateY(calc((1 - var(--exit)) * 101%));
+      box-shadow:0 -35px 70px rgba(0,0,0,.12);
     }
-    .exit-title small{
+    .catalog-bridge small{
       display:block;
       margin-bottom:12px;
-      color:#a98e78;
+      color:#9b7055;
       font-size:9px;
+      font-weight:650;
       letter-spacing:.28em;
       text-transform:uppercase;
+    }
+    .catalog-bridge strong{
+      display:block;
+      max-width:850px;
+      font-size:clamp(42px,6vw,86px);
+      line-height:.9;
+      font-weight:560;
+      letter-spacing:-.055em;
     }
 
     /* ===================== CATALOG ===================== */
@@ -336,6 +384,12 @@
       overflow:hidden;
       background:linear-gradient(145deg,#e9e2d8,#f7f3ed);
       border:1px solid rgba(30,20,12,.05);
+      border-radius:12px;
+      transition:transform .35s ease,box-shadow .35s ease;
+    }
+    .card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 22px 52px rgba(66,45,28,.09);
     }
     .card-tag{
       position:absolute;right:16px;top:16px;
@@ -381,32 +435,35 @@
       .copy p{font-size:13px;max-width:330px}.cta{padding:13px 16px}
 
       .product-stage{
-        left:50%;top:61%;
-        width:min(88vw,430px);
-        height:min(57vh,540px);
+        left:50%;top:62%;
+        width:min(82vw,410px);
+        height:min(55vh,530px);
         transform:
           translate(-50%,-50%)
-          translateY(calc(var(--exit) * -26px))
-          scale(calc(.88 + var(--p) * .06 - var(--exit) * .09));
+          translateY(calc(var(--exit) * -22px))
+          scale(calc(.9 + var(--p) * .045 - var(--exit) * .075));
       }
 
       .lid-wrap{
-        left:18%;right:18%;top:4%;
+        left:10%;top:1.2%;width:80%;
         transform:
-          translateX(calc(var(--open) * 32px))
-          translateY(calc(var(--open) * -78px))
-          rotate(calc(var(--open) * 11deg));
+          translateX(calc(var(--open) * 28px))
+          translateY(calc(var(--open) * -76px))
+          rotate(calc(var(--open) * 9deg))
+          scale(calc(1 - var(--open) * .02));
       }
 
       .facts{
         left:22px;right:22px;top:auto;bottom:7vh;width:auto;
         display:grid;grid-template-columns:1fr 1fr;gap:0 18px;
       }
+      .facts:before{grid-column:1/-1;margin-bottom:8px}
       .fact{grid-template-columns:28px 1fr;padding:11px 0}
       .fact span{display:none}.fact b{font-size:11px}
       .fact:nth-child(3){display:none}
 
-      .steps{display:none}.exit-title{bottom:9vh}
+      .steps{display:none}
+      .catalog-bridge{height:35vh;min-height:220px;padding:5vh 22px 0;border-radius:24px 24px 0 0}
       .catalog{padding:74px 18px 90px}
       .catalog-head{display:block}.catalog-copy{margin-top:15px}
       .grid{grid-template-columns:1fr 1fr;gap:10px}
@@ -443,8 +500,8 @@
       <a href="#">Produkt finden</a>
     </nav>
     <div class="header-actions" aria-hidden="true">
-      <span class="icon">⌕</span>
-      <span class="icon">▢</span>
+      <span class="icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.2 4.2"/></svg></span>
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M6.5 8.5h11l1 11h-13l1-11Z"/><path d="M9 8.5V6.8a3 3 0 0 1 6 0v1.7"/></svg></span>
     </div>
   </header>
 
@@ -457,7 +514,7 @@
         <div class="copy">
           <div class="eyebrow">FormOne Nutrition</div>
           <h1>More than<br>a supplement.</h1>
-          <p>Dein Training. Deine Balance. Deine Formel. Ein Produkt im Mittelpunkt — ruhig, klar und ohne Discount-Look.</p>
+          <p>Dein Training. Deine Balance. Deine Formel. Premium Nutrition, klar inszeniert und auf das Wesentliche reduziert.</p>
           <a class="cta" href="#catalog">Produkte entdecken <span>↗</span></a>
           <div class="scroll-note">Scroll to reveal</div>
         </div>
@@ -467,121 +524,11 @@
           <div class="powder-mist"></div>
 
           <div class="lid-wrap">
-            <svg class="lid-svg" viewBox="0 0 520 150" role="img" aria-label="Deckel">
-              <defs>
-                <linearGradient id="lidSide" x1="0" x2="1">
-                  <stop offset="0" stop-color="#050505"/>
-                  <stop offset=".23" stop-color="#242321"/>
-                  <stop offset=".5" stop-color="#111"/>
-                  <stop offset=".78" stop-color="#2b2927"/>
-                  <stop offset="1" stop-color="#050505"/>
-                </linearGradient>
-                <radialGradient id="lidTop" cx=".5" cy=".25" r=".75">
-                  <stop offset="0" stop-color="#33302d"/>
-                  <stop offset=".58" stop-color="#111"/>
-                  <stop offset="1" stop-color="#050505"/>
-                </radialGradient>
-              </defs>
-              <ellipse cx="260" cy="38" rx="220" ry="31" fill="url(#lidTop)" stroke="#3c3936" stroke-width="2"/>
-              <path d="M40 38 L40 104 C40 132 480 132 480 104 L480 38 C455 70 65 70 40 38Z" fill="url(#lidSide)" stroke="#2f2c29" stroke-width="2"/>
-              <g opacity=".52" stroke="#5f5954" stroke-width="3">
-                <path d="M58 48v63M74 51v64M90 53v64M106 55v63M122 57v63M138 59v62M154 60v62M170 61v62M186 62v62M202 63v62M218 64v62M234 64v62M250 64v62M266 64v62M282 64v62M298 63v62M314 62v62M330 61v62M346 60v62M362 59v62M378 57v63M394 55v63M410 53v64M426 51v64M442 48v63"/>
-              </g>
-              <ellipse cx="260" cy="105" rx="219" ry="27" fill="#080808" opacity=".8"/>
-            </svg>
+            <img class="lid-img" src="assets/formone-lid.webp" alt="" />
           </div>
 
           <div class="jar-wrap">
-            <svg class="jar-svg" viewBox="0 0 560 720" role="img" aria-label="FormOne Whey Protein Cookies">
-              <defs>
-                <linearGradient id="bodyG" x1="0" x2="1">
-                  <stop offset="0" stop-color="#030303"/>
-                  <stop offset=".14" stop-color="#151515"/>
-                  <stop offset=".38" stop-color="#252321"/>
-                  <stop offset=".56" stop-color="#121110"/>
-                  <stop offset=".78" stop-color="#252321"/>
-                  <stop offset="1" stop-color="#030303"/>
-                </linearGradient>
-                <radialGradient id="shine" cx=".68" cy=".23" r=".42">
-                  <stop offset="0" stop-color="#fff" stop-opacity=".2"/>
-                  <stop offset=".3" stop-color="#fff" stop-opacity=".045"/>
-                  <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-                </radialGradient>
-                <filter id="texture">
-                  <feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="4" result="noise"/>
-                  <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
-                  <feComponentTransfer in="mono" result="lowNoise">
-                    <feFuncA type="table" tableValues="0 .085"/>
-                  </feComponentTransfer>
-                  <feBlend in="SourceGraphic" in2="lowNoise" mode="soft-light"/>
-                </filter>
-                <filter id="jarShadow" x="-30%" y="-20%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#000" flood-opacity=".54"/>
-                </filter>
-              </defs>
-
-              <!-- Горлышко остаётся на банке; крышка живёт отдельным SVG слоем. -->
-              <ellipse cx="280" cy="96" rx="157" ry="28" fill="#050505" stroke="#49443f" stroke-width="4"/>
-              <ellipse cx="280" cy="96" rx="132" ry="19" fill="#020202" stroke="#252321" stroke-width="4"/>
-              <g fill="none" stroke="#302d2a" stroke-width="8">
-                <ellipse cx="280" cy="111" rx="160" ry="29"/>
-                <ellipse cx="280" cy="126" rx="158" ry="28"/>
-                <ellipse cx="280" cy="141" rx="155" ry="27"/>
-              </g>
-
-              <!-- Матовый корпус. -->
-              <path filter="url(#jarShadow)" d="M119 142
-                C92 170 76 212 72 266
-                L58 578
-                C54 666 112 706 280 706
-                C448 706 506 666 502 578
-                L488 266
-                C484 212 468 170 441 142
-                C390 167 170 167 119 142Z"
-                fill="url(#bodyG)" stroke="#292623" stroke-width="2"/>
-
-              <path d="M119 142
-                C92 170 76 212 72 266
-                L58 578
-                C54 666 112 706 280 706
-                C448 706 506 666 502 578
-                L488 266
-                C484 212 468 170 441 142
-                C390 167 170 167 119 142Z"
-                fill="url(#shine)" filter="url(#texture)" opacity=".78"/>
-
-              <!-- Этикетка -->
-              <path d="M72 311 C160 326 400 326 488 311 L496 558 C394 578 166 578 64 558Z" fill="#f1eee8"/>
-              <path d="M70 357 C167 369 393 369 490 357 L493 451 C390 465 170 465 67 451Z" fill="#aa6746"/>
-
-              <text x="280" y="349" text-anchor="middle" fill="#191715" font-size="25" font-weight="750" letter-spacing="-1">FormOne.</text>
-              <text x="166" y="416" fill="#fff" font-size="58" font-weight="850" letter-spacing="-4">WHEY</text>
-              <text x="166" y="465" fill="#fff" font-size="58" font-weight="850" letter-spacing="-4">PROTEIN</text>
-              <text x="168" y="497" fill="#181512" font-size="22" font-weight="760">COOKIES</text>
-              <text x="168" y="523" fill="#9b593b" font-size="12" font-weight="760" letter-spacing=".8">ADVANCED PROTEIN</text>
-
-              <g fill="#171411" text-anchor="middle">
-                <text x="178" y="552" font-size="24" font-weight="850">33</text>
-                <text x="178" y="568" font-size="8" font-weight="650">SERVINGS</text>
-                <text x="274" y="552" font-size="24" font-weight="850">23g</text>
-                <text x="274" y="568" font-size="8" font-weight="650">PROTEIN</text>
-                <text x="370" y="552" font-size="24" font-weight="850">119</text>
-                <text x="370" y="568" font-size="8" font-weight="650">KCAL</text>
-              </g>
-
-              <!-- Небольшой cookie-мотив, вместо мультяшной банки. -->
-              <g transform="translate(407 522) rotate(-13)">
-                <circle r="56" fill="#c98649"/>
-                <circle cx="-17" cy="-13" r="8" fill="#5c3827"/>
-                <circle cx="16" cy="-20" r="7" fill="#4b3023"/>
-                <circle cx="24" cy="17" r="9" fill="#553425"/>
-                <circle cx="-20" cy="22" r="6" fill="#533224"/>
-                <circle cx="2" cy="4" r="5" fill="#5a3625"/>
-                <path d="M-39-28Q0-46 40-23M-48 3Q0-14 49 4M-35 32Q0 18 36 33" fill="none" stroke="#e2ae72" stroke-width="4" opacity=".6"/>
-              </g>
-
-              <text x="448" y="584" text-anchor="middle" fill="#f6f2ea" font-size="14">1000g</text>
-            </svg>
+            <img class="jar-img" src="assets/formone-jar.webp" alt="FormOne Whey Protein Cookies" />
           </div>
         </div>
 
@@ -597,7 +544,10 @@
           <div class="step" id="s3">03&nbsp;&nbsp;Deine Routine</div>
         </div>
 
-        <div class="exit-title"><small>Discover the range</small>Finde deine Formel.</div>
+        <div class="catalog-bridge">
+          <small>Discover the range</small>
+          <strong>Finde deine Formel.</strong>
+        </div>
       </div>
     </section>
 
@@ -768,6 +718,11 @@
       document.getElementById('s3').classList.toggle('active', p >= .72);
 
       header.classList.toggle('is-scrolled', scrollY > 24);
+
+      // Когда тёмная scroll-story закончилась, тот же header становится светлым.
+      // Это маленькая деталь, но она делает переход в каталог цельным.
+      const catalogTop = document.getElementById('catalog').offsetTop;
+      header.classList.toggle('is-light', scrollY > catalogTop - 70);
 
       drawPowder(burst);
       frameRequested = false;
